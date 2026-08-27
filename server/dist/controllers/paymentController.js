@@ -1,6 +1,14 @@
 import Stripe from "stripe";
 import pool from "../config/db.js";
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+const getStripe = () => {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+        const error = new Error("STRIPE_SECRET_KEY is not configured.");
+        error.statusCode = 500;
+        throw error;
+    }
+    return new Stripe(secretKey);
+};
 const getServerCart = async (items) => {
     const productIds = [...new Set(items.map((item) => item.id))];
     const result = await pool.query("SELECT id, name, price FROM products WHERE id = ANY($1::int[])", [productIds]);
@@ -48,7 +56,7 @@ export const createCheckoutSession = async (req, res) => {
         }
         const cart = await getServerCart(requestedItems);
         const total = calculateTotal(cart);
-        const session = await stripe.checkout.sessions.create({
+        const session = await getStripe().checkout.sessions.create({
             mode: "payment",
             payment_method_types: ["card"],
             line_items: [
@@ -95,7 +103,7 @@ export const confirmPayment = async (req, res) => {
                 message: "Session ID is required.",
             });
         }
-        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        const session = await getStripe().checkout.sessions.retrieve(sessionId);
         if (session.payment_status !== "paid" || session.client_reference_id !== String(userId)) {
             return res.status(400).json({
                 success: false,

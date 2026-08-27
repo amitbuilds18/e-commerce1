@@ -1,13 +1,21 @@
 import Stripe from "stripe";
 import pool from "../config/db.js";
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+const getStripe = () => {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+        const error = new Error("STRIPE_SECRET_KEY is not configured.");
+        error.statusCode = 500;
+        throw error;
+    }
+    return new Stripe(secretKey);
+};
 export const createCheckoutSession = async (payload) => {
     if (!process.env.CLIENT_URL) {
         const error = new Error("CLIENT_URL is not configured.");
         error.statusCode = 500;
         throw error;
     }
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
         mode: "payment",
         payment_method_types: ["card"],
         line_items: [
@@ -33,7 +41,7 @@ export const confirmPayment = async (payload) => {
         error.statusCode = 400;
         throw error;
     }
-    const session = await stripe.checkout.sessions.retrieve(payload.session_id);
+    const session = await getStripe().checkout.sessions.retrieve(payload.session_id);
     if (session.payment_status !== "paid") {
         const error = new Error("Payment not completed.");
         error.statusCode = 400;
