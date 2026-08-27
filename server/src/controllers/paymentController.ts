@@ -3,7 +3,17 @@ import { Response } from "express";
 import pool from "../config/db.js";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+const getStripe = () => {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+
+  if (!secretKey) {
+    const error = new Error("STRIPE_SECRET_KEY is not configured.");
+    (error as any).statusCode = 500;
+    throw error;
+  }
+
+  return new Stripe(secretKey);
+};
 
 interface CheckoutItem {
   id: number;
@@ -70,7 +80,7 @@ export const createCheckoutSession = async (req: AuthRequest, res: Response) => 
     const cart = await getServerCart(requestedItems);
     const total = calculateTotal(cart);
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items: [
@@ -123,7 +133,7 @@ export const confirmPayment = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await getStripe().checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status !== "paid" || session.client_reference_id !== String(userId)) {
       return res.status(400).json({
