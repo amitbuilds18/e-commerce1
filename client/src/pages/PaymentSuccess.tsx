@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import API from "../api/axios";
 
 export default function PaymentSuccess() {
   const [params] = useSearchParams();
@@ -20,8 +20,8 @@ export default function PaymentSuccess() {
         console.log("Session:", session_id);
         console.log("Cart:", cart);
 
-        await axios.post(
-          "http://localhost:5000/api/payment/confirm-payment",
+        await API.post(
+          "/payment/confirm-payment",
           {
             session_id,
             cart,

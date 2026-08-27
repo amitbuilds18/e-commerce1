@@ -1,15 +1,7 @@
-import axios from "axios";
-
-const API = "http://localhost:5000/api/admin";
+import API from "./axios";
 
 export const getOrders = async () => {
-  const token = localStorage.getItem("token");
-
-  const res = await axios.get(`${API}/orders`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await API.get("/admin/orders");
 
   return res.data.orders;
 };
