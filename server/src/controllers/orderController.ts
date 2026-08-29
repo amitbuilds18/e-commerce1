@@ -87,12 +87,13 @@ export const getOrderById = async (
   }
 
   const userId = req.user?.id;
+  const role = req.user?.role;
   if (!userId) {
     return res.status(401).json({ success: false, message: "Unauthorized user." });
   }
 
   try {
-    const order = await orderService.getOrderById(Number(req.params.id), userId);
+    const order = await orderService.getOrderById(Number(req.params.id), userId, role);
     return res.status(200).json({
       success: true,
       order,

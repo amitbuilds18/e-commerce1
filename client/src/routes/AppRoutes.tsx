@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import ProtectedRoute from "../components/common/ProtectedRoute";
 
 // ================= USER =================
 
@@ -16,6 +17,7 @@ import OrderSuccess from "../pages/OrderSuccess";
 import PaymentSuccess from "../pages/PaymentSuccess";
 import PaymentCancel from "../pages/PaymentCancel";
 import MyOrders from "../pages/MyOrders";
+import OrderDetails from "../pages/OrderDetails";
 
 // ================= ADMIN =================
 
@@ -40,92 +42,148 @@ import SuperOrders from "../pages/superAdmin/Orders";
 import Analytics from "../pages/superAdmin/Analytics";
 import SuperNotifications from "../pages/superAdmin/Notifications";
 import Settings from "../pages/superAdmin/Settings";
-import OrderDetails from "../pages/OrderDetails";
 
 export default function AppRoutes() {
   return (
     <Routes>
-
-      {/* ================= USER ================= */}
-
+      {/* ================= PUBLIC USER ROUTES ================= */}
       <Route path="/" element={<Home />} />
       <Route path="/products" element={<Products />} />
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/contact" element={<Contact />} />
       <Route path="/wishlist" element={<Wishlist />} />
       <Route path="/cart" element={<Cart />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/contact" element={<Contact />} />
 
-      <Route path="/checkout" element={<Checkout />} />
-      <Route path="/payment-success" element={<PaymentSuccess />} />
-      <Route path="/payment-cancel" element={<PaymentCancel />} />
-      <Route path="/order-success" element={<OrderSuccess />} />
+      {/* ================= PROTECTED USER ROUTES ================= */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/checkout"
+        element={
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payment-success"
+        element={
+          <ProtectedRoute>
+            <PaymentSuccess />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payment-cancel"
+        element={
+          <ProtectedRoute>
+            <PaymentCancel />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/order-success"
+        element={
+          <ProtectedRoute>
+            <OrderSuccess />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/orders"
+        element={
+          <ProtectedRoute>
+            <MyOrders />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/orders/:id"
+        element={
+          <ProtectedRoute>
+            <OrderDetails />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* User Orders */}
-      <Route path="/orders" element={<MyOrders />} />
-
-      {/* ================= ADMIN ================= */}
-
+      {/* ================= ADMIN AUTH & ROUTES ================= */}
       <Route path="/admin/login" element={<AdminLogin />} />
 
       <Route
         path="/admin"
         element={
-          <AdminLayout>
-            <Dashboard />
-          </AdminLayout>
+          <ProtectedRoute allowedRoles={["admin", "superAdmin"]}>
+            <AdminLayout>
+              <Dashboard />
+            </AdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/admin/products"
         element={
-          <AdminLayout>
-            <AdminProducts />
-          </AdminLayout>
+          <ProtectedRoute allowedRoles={["admin", "superAdmin"]}>
+            <AdminLayout>
+              <AdminProducts />
+            </AdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/admin/add-product"
         element={
-          <AdminLayout>
-            <AddProduct />
-          </AdminLayout>
+          <ProtectedRoute allowedRoles={["admin", "superAdmin"]}>
+            <AdminLayout>
+              <AddProduct />
+            </AdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/admin/orders"
         element={
-          <AdminLayout>
-            <AdminOrders />
-          </AdminLayout>
+          <ProtectedRoute allowedRoles={["admin", "superAdmin"]}>
+            <AdminLayout>
+              <AdminOrders />
+            </AdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/admin/users"
         element={
-          <AdminLayout>
-            <AdminUsers />
-          </AdminLayout>
+          <ProtectedRoute allowedRoles={["admin", "superAdmin"]}>
+            <AdminLayout>
+              <AdminUsers />
+            </AdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/admin/notifications"
         element={
-          <AdminLayout>
-            <AdminNotifications />
-          </AdminLayout>
+          <ProtectedRoute allowedRoles={["admin", "superAdmin"]}>
+            <AdminLayout>
+              <AdminNotifications />
+            </AdminLayout>
+          </ProtectedRoute>
         }
       />
 
-      {/* ================= SUPER ADMIN ================= */}
-
+      {/* ================= SUPER ADMIN AUTH & ROUTES ================= */}
       <Route
         path="/super-admin/login"
         element={<SuperAdminLogin />}
@@ -134,79 +192,90 @@ export default function AppRoutes() {
       <Route
         path="/super-admin"
         element={
-          <SuperAdminLayout>
-            <SuperDashboard />
-          </SuperAdminLayout>
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <SuperAdminLayout>
+              <SuperDashboard />
+            </SuperAdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/super-admin/admins"
         element={
-          <SuperAdminLayout>
-            <Admins />
-          </SuperAdminLayout>
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <SuperAdminLayout>
+              <Admins />
+            </SuperAdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/super-admin/users"
         element={
-          <SuperAdminLayout>
-            <Users />
-          </SuperAdminLayout>
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <SuperAdminLayout>
+              <Users />
+            </SuperAdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/super-admin/products"
         element={
-          <SuperAdminLayout>
-            <SuperProducts />
-          </SuperAdminLayout>
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <SuperAdminLayout>
+              <SuperProducts />
+            </SuperAdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/super-admin/orders"
         element={
-          <SuperAdminLayout>
-            <SuperOrders />
-          </SuperAdminLayout>
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <SuperAdminLayout>
+              <SuperOrders />
+            </SuperAdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/super-admin/analytics"
         element={
-          <SuperAdminLayout>
-            <Analytics />
-          </SuperAdminLayout>
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <SuperAdminLayout>
+              <Analytics />
+            </SuperAdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/super-admin/notifications"
         element={
-          <SuperAdminLayout>
-            <SuperNotifications />
-          </SuperAdminLayout>
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <SuperAdminLayout>
+              <SuperNotifications />
+            </SuperAdminLayout>
+          </ProtectedRoute>
         }
       />
 
       <Route
         path="/super-admin/settings"
         element={
-          <SuperAdminLayout>
-            <Settings />
-          </SuperAdminLayout>
+          <ProtectedRoute allowedRoles={["superAdmin"]}>
+            <SuperAdminLayout>
+              <Settings />
+            </SuperAdminLayout>
+          </ProtectedRoute>
         }
       />
-      <Route
-  path="/orders/:id"
-  element={<OrderDetails />}
-/>
-
     </Routes>
   );
 }

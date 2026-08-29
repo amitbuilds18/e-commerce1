@@ -30,10 +30,18 @@ export const register = async (req, res) => {
         });
     }
     catch (error) {
-        console.log(error);
+        console.error("Register Error:", error);
+        if (error?.code === "23505") {
+            return res.status(400).json({
+                success: false,
+                message: "User already exists",
+            });
+        }
         res.status(500).json({
             success: false,
-            message: "Server Error",
+            message: process.env.NODE_ENV === "production"
+                ? "Registration failed. Check the server database configuration."
+                : error?.message || "Server Error",
         });
     }
 };
@@ -68,10 +76,12 @@ export const login = async (req, res) => {
         });
     }
     catch (error) {
-        console.error("Register Error:", error);
+        console.error("Login Error:", error);
         res.status(500).json({
             success: false,
-            message: error.message,
+            message: process.env.NODE_ENV === "production"
+                ? "Login failed. Check the server database configuration."
+                : error?.message || "Server Error",
         });
     }
 };

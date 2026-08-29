@@ -86,9 +86,27 @@ export const getMyOrders = async (userId: number) => {
   return result.rows;
 };
 
-export const getOrderById = async (orderId: number, userId: number) => {
-  const result = await pool.query(
+export const getOrderById = async (orderId: number, userId: number, role?: string) => {
+  const isAdmin = role === "admin" || role === "superAdmin";
+  const query = isAdmin
+    ? `
+      SELECT
+        orders.id,
+        products.id AS product_id,
+        products.name,
+        products.description,
+        products.image,
+        products.price,
+        orders.quantity,
+        orders.total,
+        orders.status,
+        orders.payment_status,
+        orders.created_at
+      FROM orders
+      INNER JOIN products ON products.id = orders.product_id
+      WHERE orders.id = $1
     `
+    : `
       SELECT
         orders.id,
         products.id AS product_id,
@@ -105,9 +123,10 @@ export const getOrderById = async (orderId: number, userId: number) => {
       INNER JOIN products ON products.id = orders.product_id
       WHERE orders.id = $1
         AND orders.user_id = $2
-    `,
-    [orderId, userId]
-  );
+    `;
+
+  const params = isAdmin ? [orderId] : [orderId, userId];
+  const result = await pool.query(query, params);
 
   if (result.rows.length === 0) {
     const error = new Error("Order not found.");

@@ -7,8 +7,14 @@ const normalizedApiUrl = configuredApiUrl
     : `${configuredApiUrl.replace(/\/+$/, "")}/api`
   : undefined;
 
+const fallbackApiUrl = import.meta.env.DEV
+  ? "http://localhost:5000/api"
+  : typeof window !== "undefined"
+    ? `${window.location.origin}/api`
+    : "http://localhost:5000/api";
+
 const API = axios.create({
-  baseURL: normalizedApiUrl || (import.meta.env.DEV ? "http://localhost:5000/api" : "/api"),
+  baseURL: normalizedApiUrl || fallbackApiUrl,
 });
 
 API.interceptors.request.use((config) => {

@@ -19,7 +19,7 @@ export const getDashboardStats = async (
     );
 
     const revenue = await pool.query(
-      "SELECT COALESCE(SUM(total_amount),0) AS revenue FROM orders"
+      "SELECT COALESCE(SUM(total),0) AS revenue FROM orders WHERE payment_status='Paid'"
     );
 
     res.json({

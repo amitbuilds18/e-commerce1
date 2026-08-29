@@ -40,6 +40,7 @@ export default function Login() {
 
       setError(
         err.response?.data?.message ||
+        err.response?.data?.error?.message ||
         "Login Failed"
       );
 

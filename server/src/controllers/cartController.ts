@@ -84,11 +84,19 @@ export const removeCartItem = async (
   try {
 
     const { id } = req.params;
+    const user_id = req.user?.id;
 
-    await pool.query(
-      "DELETE FROM cart WHERE id=$1",
-      [id]
+    const result = await pool.query(
+      "DELETE FROM cart WHERE id=$1 AND user_id=$2 RETURNING *",
+      [id, user_id]
     );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Cart item not found or unauthorized",
+      });
+    }
 
     res.json({
       success: true,

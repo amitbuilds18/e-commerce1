@@ -42,6 +42,7 @@ export default function Register() {
 
       setError(
         err.response?.data?.message ||
+        err.response?.data?.error?.message ||
         "Registration Failed"
       );
 

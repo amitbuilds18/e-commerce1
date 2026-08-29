@@ -49,7 +49,7 @@ router.get(
 router.get(
   "/:id",
   protect,
-  authorize("user"),
+  authorize("user", "admin", "superAdmin"),
   validateParams(validateOrderIdParam),
   getOrderById
 );

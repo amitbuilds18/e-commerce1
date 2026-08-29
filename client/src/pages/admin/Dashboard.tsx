@@ -2,6 +2,17 @@ import { useEffect, useState } from "react";
 import DashboardCard from "../../components/admin/DashboardCard";
 import { getDashboardStats } from "../../api/dashboardApi";
 
+interface RecentOrder {
+  id: number;
+  name: string;
+  product: string;
+  quantity: number;
+  total: number;
+  status: string;
+  payment_status: string;
+  created_at: string;
+}
+
 export default function Dashboard() {
   const [stats, setStats] = useState({
     products: 0,
@@ -10,6 +21,7 @@ export default function Dashboard() {
     revenue: 0,
   });
 
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,16 +29,27 @@ export default function Dashboard() {
       try {
         const data = await getDashboardStats();
 
-        console.log(data);
+        if (data.stats) {
+          setStats({
+            products: Number(data.stats.totalProducts || 0),
+            orders: Number(data.stats.totalOrders || 0),
+            users: Number(data.stats.totalUsers || 0),
+            revenue: Number(data.stats.totalRevenue || 0),
+          });
+        } else {
+          setStats({
+            products: Number(data.products || 0),
+            orders: Number(data.orders || 0),
+            users: Number(data.users || 0),
+            revenue: Number(data.revenue || 0),
+          });
+        }
 
-        setStats({
-          products: data.products,
-          orders: data.orders,
-          users: data.users,
-          revenue: data.revenue,
-        });
+        if (data.recentOrders) {
+          setRecentOrders(data.recentOrders);
+        }
       } catch (error) {
-        console.log(error);
+        console.error("Dashboard fetch error:", error);
       } finally {
         setLoading(false);
       }
@@ -46,7 +69,6 @@ export default function Dashboard() {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-
         <DashboardCard
           title="Products"
           value={stats.products.toString()}
@@ -67,34 +89,70 @@ export default function Dashboard() {
 
         <DashboardCard
           title="Revenue"
-          value={`₹${stats.revenue}`}
+          value={`₹${stats.revenue.toLocaleString()}`}
           color="bg-purple-500"
         />
-
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 mt-8">
+      <div className="mt-8 bg-white rounded-xl shadow p-6">
+        <h2 className="text-xl font-bold mb-4">
+          Recent Orders
+        </h2>
 
-        <div className="bg-white rounded-xl shadow p-6 h-80">
-          <h2 className="text-xl font-bold mb-4">
-            Revenue Chart
-          </h2>
-
-          <div className="flex justify-center items-center h-full text-gray-400">
-            Chart will come here
+        {recentOrders.length === 0 ? (
+          <p className="text-gray-500 text-center py-6">No recent orders found.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b bg-gray-50">
+                  <th className="p-3">Order ID</th>
+                  <th className="p-3">Customer</th>
+                  <th className="p-3">Product</th>
+                  <th className="p-3">Qty</th>
+                  <th className="p-3">Total</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Payment</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentOrders.map((order) => (
+                  <tr key={order.id} className="border-b hover:bg-gray-50">
+                    <td className="p-3 font-semibold">#{order.id}</td>
+                    <td className="p-3">{order.name}</td>
+                    <td className="p-3">{order.product}</td>
+                    <td className="p-3">{order.quantity}</td>
+                    <td className="p-3 font-semibold text-orange-600">₹{order.total}</td>
+                    <td className="p-3">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          order.status === "Delivered"
+                            ? "bg-green-100 text-green-700"
+                            : order.status === "Pending"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          order.payment_status === "Paid"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {order.payment_status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow p-6 h-80">
-          <h2 className="text-xl font-bold mb-4">
-            Recent Orders
-          </h2>
-
-          <div className="flex justify-center items-center h-full text-gray-400">
-            Orders table will come here
-          </div>
-        </div>
-
+        )}
       </div>
     </>
   );

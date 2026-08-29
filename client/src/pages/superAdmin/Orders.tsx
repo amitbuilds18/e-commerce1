@@ -3,20 +3,32 @@ import API from "../../api/axios";
 
 interface Order {
   id: number;
-  user: string;
-  product: string;
+  user_name?: string;
+  user?: string;
+  email?: string;
+  name?: string;
+  product?: string;
   quantity: number;
   total: number;
   status: string;
+  payment_status?: string;
+  created_at?: string;
 }
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
-    const res = await API.get("/orders");
-    setOrders(res.data.orders);
+    try {
+      const res = await API.get("/orders");
+      setOrders(res.data.orders || []);
+    } catch (error) {
+      console.error("Failed to load orders:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -27,27 +39,38 @@ export default function Orders() {
     id: number,
     status: string
   ) => {
-    await API.put(`/orders/${id}`, {
-      status,
-    });
-
-    fetchOrders();
+    try {
+      await API.put(`/orders/${id}`, {
+        status,
+      });
+      fetchOrders();
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      alert("Failed to update order status");
+    }
   };
 
   const deleteOrder = async (id: number) => {
     if (!window.confirm("Delete Order?")) return;
 
-    await API.delete(`/orders/${id}`);
-
-    fetchOrders();
+    try {
+      await API.delete(`/orders/${id}`);
+      fetchOrders();
+    } catch (error) {
+      console.error("Failed to delete order:", error);
+      alert("Failed to delete order");
+    }
   };
 
-  const filtered = orders.filter((o) =>
-    o.user.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = orders.filter((o) => {
+    const customer = (o.user_name || o.user || o.email || "").toLowerCase();
+    const productName = (o.name || o.product || "").toLowerCase();
+    const query = search.toLowerCase();
+    return customer.includes(query) || productName.includes(query) || String(o.id).includes(query);
+  });
 
   const revenue = orders.reduce(
-    (sum, o) => sum + Number(o.total),
+    (sum, o) => sum + Number(o.total || 0),
     0
   );
 
@@ -59,143 +82,135 @@ export default function Orders() {
     (o) => o.status === "Delivered"
   ).length;
 
+  if (loading) {
+    return (
+      <div className="p-8 text-center text-2xl">
+        Loading Orders...
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
-
       <h1 className="text-4xl font-bold mb-8">
         Orders Management
       </h1>
 
-      {/* Cards */}
-
-      <div className="grid grid-cols-4 gap-5 mb-8">
-
+      {/* Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         <div className="bg-white rounded-xl shadow p-5">
-          <h2>Total Orders</h2>
-          <p className="text-3xl font-bold">
+          <h2 className="text-gray-500 font-semibold">Total Orders</h2>
+          <p className="text-3xl font-bold mt-2">
             {orders.length}
           </p>
         </div>
 
         <div className="bg-white rounded-xl shadow p-5">
-          <h2>Pending</h2>
-          <p className="text-3xl font-bold text-orange-500">
+          <h2 className="text-gray-500 font-semibold">Pending</h2>
+          <p className="text-3xl font-bold text-orange-500 mt-2">
             {pending}
           </p>
         </div>
 
         <div className="bg-white rounded-xl shadow p-5">
-          <h2>Delivered</h2>
-          <p className="text-3xl font-bold text-green-600">
+          <h2 className="text-gray-500 font-semibold">Delivered</h2>
+          <p className="text-3xl font-bold text-green-600 mt-2">
             {completed}
           </p>
         </div>
 
         <div className="bg-white rounded-xl shadow p-5">
-          <h2>Total Revenue</h2>
-          <p className="text-3xl font-bold text-purple-600">
-            ₹{revenue}
+          <h2 className="text-gray-500 font-semibold">Total Revenue</h2>
+          <p className="text-3xl font-bold text-purple-600 mt-2">
+            ₹{revenue.toLocaleString()}
           </p>
         </div>
-
       </div>
 
       {/* Search */}
-
       <input
-        placeholder="Search User..."
+        placeholder="Search user or product..."
         className="border rounded-lg p-3 w-72 mb-6"
         value={search}
-        onChange={(e) =>
-          setSearch(e.target.value)
-        }
+        onChange={(e) => setSearch(e.target.value)}
       />
 
       {/* Table */}
-
       <div className="bg-white rounded-xl shadow overflow-hidden">
-
         <table className="w-full">
-
           <thead className="bg-gray-100">
-
             <tr>
-
-              <th className="p-4">ID</th>
-              <th>User</th>
-              <th>Product</th>
-              <th>Qty</th>
-              <th>Total</th>
-              <th>Status</th>
-              <th>Action</th>
-
+              <th className="p-4 text-center">ID</th>
+              <th className="p-4 text-left">User</th>
+              <th className="p-4 text-left">Product</th>
+              <th className="p-4 text-center">Qty</th>
+              <th className="p-4 text-center">Total</th>
+              <th className="p-4 text-center">Status</th>
+              <th className="p-4 text-center">Action</th>
             </tr>
-
           </thead>
 
           <tbody>
-
-            {filtered.map((order) => (
-
-              <tr
-                key={order.id}
-                className="border-t text-center"
-              >
-
-                <td>{order.id}</td>
-
-                <td>{order.user}</td>
-
-                <td>{order.product}</td>
-
-                <td>{order.quantity}</td>
-
-                <td>₹{order.total}</td>
-
-                <td>
-
-                  <select
-                    value={order.status}
-                    onChange={(e) =>
-                      updateStatus(
-                        order.id,
-                        e.target.value
-                      )
-                    }
-                    className="border rounded px-2 py-1"
-                  >
-                    <option>Pending</option>
-                    <option>Processing</option>
-                    <option>Shipped</option>
-                    <option>Delivered</option>
-                    <option>Cancelled</option>
-                  </select>
-
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="text-center p-8 text-gray-500">
+                  No Orders Found
                 </td>
-
-                <td>
-
-                  <button
-                    onClick={() =>
-                      deleteOrder(order.id)
-                    }
-                    className="bg-red-500 text-white px-4 py-1 rounded"
-                  >
-                    Delete
-                  </button>
-
-                </td>
-
               </tr>
+            ) : (
+              filtered.map((order) => (
+                <tr
+                  key={order.id}
+                  className="border-t text-center hover:bg-gray-50"
+                >
+                  <td className="p-4 font-semibold">#{order.id}</td>
 
-            ))}
+                  <td className="p-4 text-left">
+                    <div className="font-semibold">{order.user_name || order.user || "User"}</div>
+                    {order.email && <div className="text-xs text-gray-400">{order.email}</div>}
+                  </td>
 
+                  <td className="p-4 text-left">{order.name || order.product || "Product"}</td>
+
+                  <td className="p-4">{order.quantity}</td>
+
+                  <td className="p-4 font-semibold text-orange-600">₹{order.total}</td>
+
+                  <td className="p-4">
+                    <select
+                      value={order.status}
+                      onChange={(e) =>
+                        updateStatus(
+                          order.id,
+                          e.target.value
+                        )
+                      }
+                      className="border rounded px-3 py-1 bg-white"
+                    >
+                      <option>Pending</option>
+                      <option>Processing</option>
+                      <option>Shipped</option>
+                      <option>Delivered</option>
+                      <option>Cancelled</option>
+                    </select>
+                  </td>
+
+                  <td className="p-4">
+                    <button
+                      onClick={() =>
+                        deleteOrder(order.id)
+                      }
+                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded transition"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
-
         </table>
-
       </div>
-
     </div>
   );
 }

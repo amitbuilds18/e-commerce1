@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://e-commerce1-t7w2.vercel.app/api/$1"
+      "destination": "https://e-commerce1-aked.vercel.app/api/$1"
     },
     {
       "source": "/(.*)",
