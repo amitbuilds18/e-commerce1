@@ -1,20 +1,23 @@
 import axios from "axios";
 
 const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
-const normalizedApiUrl = configuredApiUrl
-  ? configuredApiUrl.replace(/\/+$/, "").endsWith("/api")
-    ? configuredApiUrl.replace(/\/+$/, "")
-    : `${configuredApiUrl.replace(/\/+$/, "")}/api`
-  : undefined;
 
-const fallbackApiUrl = import.meta.env.DEV
-  ? "http://localhost:5000/api"
-  : typeof window !== "undefined"
-    ? `${window.location.origin}/api`
-    : "http://localhost:5000/api";
+const getBaseUrl = () => {
+  if (configuredApiUrl) {
+    const cleanUrl = configuredApiUrl.replace(/\/+$/, "");
+    return cleanUrl.endsWith("/api") ? cleanUrl : `${cleanUrl}/api`;
+  }
+
+  if (import.meta.env.DEV) {
+    return "http://localhost:5000/api";
+  }
+
+  // Production default
+  return "/api";
+};
 
 const API = axios.create({
-  baseURL: normalizedApiUrl || fallbackApiUrl,
+  baseURL: getBaseUrl(),
 });
 
 API.interceptors.request.use((config) => {
@@ -28,4 +31,3 @@ API.interceptors.request.use((config) => {
 });
 
 export default API;
-

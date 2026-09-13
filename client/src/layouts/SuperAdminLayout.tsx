@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Sidebar from "../components/superAdmin/Sidebar";
 import Navbar from "../components/superAdmin/Navbar";
 
@@ -6,24 +6,20 @@ type Props = {
   children: ReactNode;
 };
 
-export default function SuperAdminLayout({
-  children,
-}: Props) {
+export default function SuperAdminLayout({ children }: Props) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-slate-100/70 min-h-screen text-slate-800">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <Sidebar />
+      <div className="lg:ml-72 flex flex-col min-h-screen">
+        <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-      <div className="ml-72">
-
-        <Navbar />
-
-        <main className="p-8">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {children}
         </main>
-
       </div>
-
     </div>
   );
-}
+}

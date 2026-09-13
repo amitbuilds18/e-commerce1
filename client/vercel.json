@@ -1,9 +1,5 @@
-{
+﻿{
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://e-commerce1-aked.vercel.app/api/$1"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

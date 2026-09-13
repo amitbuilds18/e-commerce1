@@ -1,148 +1,200 @@
+import { useNavigate } from "react-router-dom";
+import { FaTrash, FaPlus, FaMinus, FaArrowRight, FaShieldAlt, FaUndo } from "react-icons/fa";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { useCart } from "../context/CartContext";
-import { useNavigate } from "react-router-dom";
+import { useToast } from "../context/ToastContext";
 
 export default function Cart() {
-  const { cart, removeFromCart } = useCart();
-
+  const { cart, removeFromCart, addToCart } = useCart();
   const navigate = useNavigate();
+  const { info } = useToast();
 
-  const total = cart.reduce(
+  const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+
+  const shipping = cart.length > 0 ? (subtotal > 2000 ? 0 : 50) : 0;
+  const gst = Math.round(subtotal * 0.18);
+  const grandTotal = subtotal + shipping + gst;
+
+  const handleIncrement = (item: any) => {
+    addToCart({ ...item, quantity: 1 });
+  };
+
+  const handleDecrement = (item: any) => {
+    if (item.quantity > 1) {
+      addToCart({ ...item, quantity: -1 });
+    } else {
+      removeFromCart(item.id);
+      info(`Removed ${item.name} from cart`);
+    }
+  };
+
+  const handleRemove = (id: number, name: string) => {
+    removeFromCart(id);
+    info(`Removed ${name} from cart`);
+  };
 
   return (
     <>
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <h1 className="text-4xl font-bold mb-8">
-          My Cart 🛒
-        </h1>
-
-        {cart.length === 0 ? (
-          <div className="text-center py-20">
-            <h2 className="text-2xl font-semibold">
-              Your cart is empty
-            </h2>
-
-            <p className="text-gray-500 mt-2">
-              Add products to your cart.
-            </p>
-
-            <button
-              onClick={() => navigate("/products")}
-              className="mt-6 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg"
-            >
-              Continue Shopping
-            </button>
-          </div>
-        ) : (
-          <>
-            {cart.map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-col md:flex-row justify-between items-center border rounded-xl p-5 mb-5 shadow-sm bg-white"
+      <div className="bg-gray-50 min-h-screen py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
+              Shopping Cart ({cart.length} {cart.length === 1 ? "item" : "items"})
+            </h1>
+            {cart.length > 0 && (
+              <button
+                onClick={() => navigate("/products")}
+                className="text-orange-500 font-semibold text-sm hover:underline"
               >
-                <div className="flex items-center gap-5">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-24 h-24 object-cover rounded-lg"
-                  />
+                + Add More Items
+              </button>
+            )}
+          </div>
 
-                  <div>
-                    <h2 className="text-xl font-bold">
-                      {item.name}
-                    </h2>
+          {cart.length === 0 ? (
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-16 text-center max-w-lg mx-auto">
+              <div className="w-24 h-24 bg-orange-50 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+                🛍️
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Your cart is feeling lonely
+              </h2>
+              <p className="text-gray-500 mb-8 text-sm">
+                Explore our trending fashion collection and add items to your cart.
+              </p>
+              <button
+                onClick={() => navigate("/products")}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3.5 rounded-2xl shadow-lg transition duration-300"
+              >
+                Start Shopping
+              </button>
+            </div>
+          ) : (
+            <div className="grid lg:grid-cols-12 gap-8 items-start">
+              {/* Cart Items List */}
+              <div className="lg:col-span-8 space-y-4">
+                {cart.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6 transition hover:shadow-md"
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-24 h-24 rounded-xl object-cover border bg-gray-50"
+                    />
 
-                    <p className="text-gray-600 mt-1">
-                      Price: ₹ {item.price}
-                    </p>
+                    <div className="flex-1 text-center sm:text-left space-y-1">
+                      <h3 className="text-lg font-bold text-gray-900">{item.name}</h3>
+                      <p className="text-sm font-semibold text-orange-600">
+                        ₹{item.price.toLocaleString()} each
+                      </p>
+                      <p className="text-xs text-gray-400">Item ID: #{item.id}</p>
+                    </div>
 
-                    <p className="text-gray-600">
-                      Quantity: {item.quantity}
-                    </p>
+                    {/* Quantity Controls */}
+                    <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl">
+                      <button
+                        onClick={() => handleDecrement(item)}
+                        className="text-gray-500 hover:text-black p-1 transition"
+                        aria-label="Decrease quantity"
+                      >
+                        <FaMinus className="text-xs" />
+                      </button>
+                      <span className="font-bold text-sm min-w-[20px] text-center">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => handleIncrement(item)}
+                        className="text-gray-500 hover:text-black p-1 transition"
+                        aria-label="Increase quantity"
+                      >
+                        <FaPlus className="text-xs" />
+                      </button>
+                    </div>
 
-                    <p className="font-semibold mt-2">
-                      Total: ₹{" "}
-                      {item.price * item.quantity}
-                    </p>
+                    {/* Item Total Price */}
+                    <div className="text-right min-w-[90px]">
+                      <span className="text-lg font-extrabold text-gray-900">
+                        ₹{(item.price * item.quantity).toLocaleString()}
+                      </span>
+                    </div>
+
+                    {/* Remove Action */}
+                    <button
+                      onClick={() => handleRemove(item.id, item.name)}
+                      className="text-gray-400 hover:text-red-500 p-2 transition"
+                      title="Remove item"
+                    >
+                      <FaTrash className="text-sm" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Order Summary Sidebar */}
+              <div className="lg:col-span-4 bg-white rounded-2xl shadow-md border border-gray-100 p-6 space-y-6 sticky top-24">
+                <h2 className="text-xl font-bold text-gray-900 border-b pb-4">
+                  Order Summary
+                </h2>
+
+                <div className="space-y-3 text-sm text-gray-600">
+                  <div className="flex justify-between">
+                    <span>Items Subtotal</span>
+                    <span className="font-semibold text-gray-900">₹{subtotal.toLocaleString()}</span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span>Shipping Estimate</span>
+                    <span>
+                      {shipping === 0 ? (
+                        <span className="text-green-600 font-bold">FREE</span>
+                      ) : (
+                        `₹${shipping}`
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <span>Estimated GST (18%)</span>
+                    <span>₹{gst.toLocaleString()}</span>
+                  </div>
+
+                  <div className="border-t pt-4 flex justify-between text-xl font-extrabold text-gray-900">
+                    <span>Total Amount</span>
+                    <span className="text-orange-600">₹{grandTotal.toLocaleString()}</span>
                   </div>
                 </div>
 
                 <button
-                  onClick={() =>
-                    removeFromCart(item.id)
-                  }
-                  className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg mt-4 md:mt-0"
+                  onClick={() => navigate("/checkout")}
+                  className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-extrabold py-4 rounded-xl shadow-lg hover:shadow-xl transition duration-300"
                 >
-                  Remove
-                </button>
-              </div>
-            ))}
-
-            {/* Summary */}
-
-            <div className="bg-white shadow-lg rounded-xl p-6 mt-8">
-
-              <div className="flex justify-between text-lg mb-3">
-                <span>Subtotal</span>
-                <span>₹ {total}</span>
-              </div>
-
-              <div className="flex justify-between text-lg mb-3">
-                <span>Shipping</span>
-                <span>₹ 50</span>
-              </div>
-
-              <div className="flex justify-between text-lg mb-3">
-                <span>GST (18%)</span>
-                <span>
-                  ₹ {Math.round(total * 0.18)}
-                </span>
-              </div>
-
-              <hr className="my-4" />
-
-              <div className="flex justify-between text-3xl font-bold">
-                <span>Grand Total</span>
-
-                <span>
-                  ₹{" "}
-                  {total +
-                    50 +
-                    Math.round(total * 0.18)}
-                </span>
-              </div>
-
-              <div className="flex justify-end gap-4 mt-8">
-
-                <button
-                  onClick={() =>
-                    navigate("/products")
-                  }
-                  className="border border-orange-500 text-orange-500 px-6 py-3 rounded-lg hover:bg-orange-50"
-                >
-                  Continue Shopping
+                  <span>Proceed to Checkout</span>
+                  <FaArrowRight className="text-sm" />
                 </button>
 
-                <button
-                  onClick={() =>
-                    navigate("/checkout")
-                  }
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg text-lg font-semibold"
-                >
-                  Proceed to Checkout
-                </button>
-
+                {/* Trust Badges */}
+                <div className="pt-4 border-t space-y-2 text-xs text-gray-500">
+                  <div className="flex items-center gap-2">
+                    <FaShieldAlt className="text-green-600" />
+                    <span>256-Bit SSL Encrypted Checkout</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FaUndo className="text-blue-600" />
+                    <span>7-Day Hassle-Free Returns</span>
+                  </div>
+                </div>
               </div>
-
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
 
       <Footer />

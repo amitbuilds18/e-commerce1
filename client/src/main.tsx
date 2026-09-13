@@ -6,15 +6,18 @@ import "./index.css";
 
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
+import { ToastProvider } from "./context/ToastContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <CartProvider>
-        <WishlistProvider>
-          <App />
-        </WishlistProvider>
-      </CartProvider>
+      <ToastProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <App />
+          </WishlistProvider>
+        </CartProvider>
+      </ToastProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
