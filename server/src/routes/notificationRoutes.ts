@@ -3,6 +3,8 @@ import express from "express";
 import {
   getNotifications,
   markAsRead,
+  createNotification,
+  deleteNotification,
 } from "../controllers/notificationController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
@@ -17,11 +19,25 @@ router.get(
   getNotifications
 );
 
+router.post(
+  "/",
+  protect,
+  authorize("superAdmin"),
+  createNotification
+);
+
 router.put(
   "/:id",
   protect,
   authorize("superAdmin"),
   markAsRead
+);
+
+router.delete(
+  "/:id",
+  protect,
+  authorize("superAdmin"),
+  deleteNotification
 );
 
 export default router;

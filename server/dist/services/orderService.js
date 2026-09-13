@@ -16,6 +16,16 @@ export const placeOrder = async (userId, payload) => {
             error.statusCode = 400;
             throw error;
         }
+        // Atomic stock check and decrement
+        const stockUpdate = await client.query(`UPDATE products
+       SET stock = stock - $1
+       WHERE id = $2 AND stock >= $1
+       RETURNING stock`, [payload.quantity, payload.product_id]);
+        if (stockUpdate.rows.length === 0) {
+            const error = new Error("Insufficient stock available for this item.");
+            error.statusCode = 400;
+            throw error;
+        }
         const result = await client.query(`
       INSERT INTO orders
       (
@@ -60,8 +70,27 @@ export const getMyOrders = async (userId) => {
     `, [userId]);
     return result.rows;
 };
-export const getOrderById = async (orderId, userId) => {
-    const result = await pool.query(`
+export const getOrderById = async (orderId, userId, role) => {
+    const isAdmin = role === "admin" || role === "superAdmin";
+    const query = isAdmin
+        ? `
+      SELECT
+        orders.id,
+        products.id AS product_id,
+        products.name,
+        products.description,
+        products.image,
+        products.price,
+        orders.quantity,
+        orders.total,
+        orders.status,
+        orders.payment_status,
+        orders.created_at
+      FROM orders
+      INNER JOIN products ON products.id = orders.product_id
+      WHERE orders.id = $1
+    `
+        : `
       SELECT
         orders.id,
         products.id AS product_id,
@@ -78,7 +107,9 @@ export const getOrderById = async (orderId, userId) => {
       INNER JOIN products ON products.id = orders.product_id
       WHERE orders.id = $1
         AND orders.user_id = $2
-    `, [orderId, userId]);
+    `;
+    const params = isAdmin ? [orderId] : [orderId, userId];
+    const result = await pool.query(query, params);
     if (result.rows.length === 0) {
         const error = new Error("Order not found.");
         error.statusCode = 404;
@@ -106,6 +137,14 @@ export const getOrders = async () => {
       ORDER BY orders.created_at DESC
     `);
     return result.rows;
+};
+export const getUserByOrderId = async (userId) => {
+    const result = await pool.query(`
+      SELECT id, name, email, phone
+      FROM users
+      WHERE id = $1
+    `, [userId]);
+    return result.rows[0] || null;
 };
 export const updateOrderStatus = async (orderId, status) => {
     const result = await pool.query(`

@@ -1,4 +1,5 @@
 import * as orderService from "../services/orderService.js";
+import { sendWhatsAppMessage } from "../utils/whatsapp.js";
 import { validatePlaceOrderBody, validateOrderIdParam, validateOrderStatusBody, } from "../validators/orderValidator.js";
 // =====================================
 // PLACE ORDER
@@ -18,6 +19,13 @@ export const placeOrder = async (req, res) => {
             quantity: Number(req.body.quantity),
             total: Number(req.body.total),
         });
+        const phone = String(req.body.phone || "").trim();
+        if (phone) {
+            await sendWhatsAppMessage({
+                to: phone,
+                message: `Your order has been placed successfully. Order ID: ${order.id}. Thank you for shopping with StyleHub!`,
+            });
+        }
         return res.status(201).json({
             success: true,
             message: "Order placed successfully.",
@@ -63,11 +71,12 @@ export const getOrderById = async (req, res) => {
         return res.status(400).json({ success: false, message: validationError });
     }
     const userId = req.user?.id;
+    const role = req.user?.role;
     if (!userId) {
         return res.status(401).json({ success: false, message: "Unauthorized user." });
     }
     try {
-        const order = await orderService.getOrderById(Number(req.params.id), userId);
+        const order = await orderService.getOrderById(Number(req.params.id), userId, role);
         return res.status(200).json({
             success: true,
             order,
@@ -109,6 +118,16 @@ export const updateOrderStatus = async (req, res) => {
     }
     try {
         const order = await orderService.updateOrderStatus(Number(req.params.id), req.body.status);
+        if (order && order.user_id) {
+            const userResult = await orderService.getUserByOrderId(order.user_id);
+            const customerPhone = userResult?.phone;
+            if (customerPhone) {
+                await sendWhatsAppMessage({
+                    to: customerPhone,
+                    message: `Your order status has been updated to: ${req.body.status}. Order ID: ${order.id}.`,
+                });
+            }
+        }
         return res.status(200).json({
             success: true,
             message: "Order updated successfully.",

@@ -1,6 +1,7 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/authMiddleware.js";
 import * as orderService from "../services/orderService.js";
+import { sendWhatsAppMessage } from "../utils/whatsapp.js";
 import {
   validatePlaceOrderBody,
   validateOrderIdParam,
@@ -31,6 +32,15 @@ export const placeOrder = async (
       quantity: Number(req.body.quantity),
       total: Number(req.body.total),
     });
+
+    const phone = String(req.body.phone || "").trim();
+
+    if (phone) {
+      await sendWhatsAppMessage({
+        to: phone,
+        message: `Your order has been placed successfully. Order ID: ${order.id}. Thank you for shopping with StyleHub!`,
+      });
+    }
 
     return res.status(201).json({
       success: true,
@@ -144,6 +154,19 @@ export const updateOrderStatus = async (
 
   try {
     const order = await orderService.updateOrderStatus(Number(req.params.id), req.body.status);
+
+    if (order && order.user_id) {
+      const userResult = await orderService.getUserByOrderId(order.user_id);
+      const customerPhone = userResult?.phone;
+
+      if (customerPhone) {
+        await sendWhatsAppMessage({
+          to: customerPhone,
+          message: `Your order status has been updated to: ${req.body.status}. Order ID: ${order.id}.`,
+        });
+      }
+    }
+
     return res.status(200).json({
       success: true,
       message: "Order updated successfully.",

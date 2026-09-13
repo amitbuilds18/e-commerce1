@@ -16,7 +16,7 @@ router.get("/my-orders", protect, authorize("user"), getMyOrders);
 // ===================================
 // USER SINGLE ORDER DETAILS
 // ===================================
-router.get("/:id", protect, authorize("user"), validateParams(validateOrderIdParam), getOrderById);
+router.get("/:id", protect, authorize("user", "admin", "superAdmin"), validateParams(validateOrderIdParam), getOrderById);
 // ===================================
 // ADMIN GET ALL ORDERS
 // ===================================

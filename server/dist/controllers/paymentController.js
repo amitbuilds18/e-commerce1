@@ -133,6 +133,8 @@ export const confirmPayment = async (req, res) => {
                 return res.json({ success: true, message: "Payment was already confirmed." });
             }
             for (const item of cart) {
+                // Atomic stock decrement
+                await client.query(`UPDATE products SET stock = GREATEST(0, stock - $1) WHERE id = $2`, [item.quantity, item.id]);
                 await client.query(`
         INSERT INTO orders
         (
@@ -167,4 +169,59 @@ export const confirmPayment = async (req, res) => {
             message: err.statusCode ? err.message : "Unable to confirm payment.",
         });
     }
+};
+// ================================
+// STRIPE WEBHOOK (ASYNC FULFILLMENT)
+// ================================
+export const handleStripeWebhook = async (req, res) => {
+    const sig = req.headers["stripe-signature"];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    let event;
+    try {
+        if (webhookSecret && sig) {
+            event = getStripe().webhooks.constructEvent(req.body, sig, webhookSecret);
+        }
+        else {
+            event = req.body;
+        }
+    }
+    catch (err) {
+        console.error("Webhook signature verification failed:", err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+    if (event.type === "checkout.session.completed") {
+        const session = event.data.object;
+        const userId = Number(session.client_reference_id);
+        const storedCart = JSON.parse(session.metadata?.cart || "[]");
+        if (userId && Array.isArray(storedCart) && storedCart.length > 0) {
+            const client = await pool.connect();
+            try {
+                await client.query("BEGIN");
+                await client.query(`CREATE TABLE IF NOT EXISTS payment_confirmations (
+            session_id TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            confirmed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+          )`);
+                const confirmation = await client.query("INSERT INTO payment_confirmations(session_id, user_id) VALUES($1, $2) ON CONFLICT (session_id) DO NOTHING RETURNING session_id", [session.id, userId]);
+                if (confirmation.rows.length > 0) {
+                    const cart = await getServerCart(storedCart);
+                    for (const item of cart) {
+                        // Atomic stock decrement
+                        await client.query(`UPDATE products SET stock = GREATEST(0, stock - $1) WHERE id = $2`, [item.quantity, item.id]);
+                        await client.query(`INSERT INTO orders (user_id, product_id, quantity, total, status, payment_status)
+               VALUES ($1, $2, $3, $4, 'Pending', 'Paid')`, [userId, item.id, item.quantity, item.price * item.quantity]);
+                    }
+                }
+                await client.query("COMMIT");
+            }
+            catch (err) {
+                await client.query("ROLLBACK");
+                console.error("Error fulfilling webhook order:", err);
+            }
+            finally {
+                client.release();
+            }
+        }
+    }
+    res.json({ received: true });
 };

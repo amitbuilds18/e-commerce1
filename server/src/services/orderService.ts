@@ -34,6 +34,21 @@ export const placeOrder = async (
       throw error;
     }
 
+    // Atomic stock check and decrement
+    const stockUpdate = await client.query(
+      `UPDATE products
+       SET stock = stock - $1
+       WHERE id = $2 AND stock >= $1
+       RETURNING stock`,
+      [payload.quantity, payload.product_id]
+    );
+
+    if (stockUpdate.rows.length === 0) {
+      const error = new Error("Insufficient stock available for this item.");
+      (error as any).statusCode = 400;
+      throw error;
+    }
+
     const result = await client.query(
       `
       INSERT INTO orders
@@ -160,6 +175,19 @@ export const getOrders = async () => {
   );
 
   return result.rows;
+};
+
+export const getUserByOrderId = async (userId: number) => {
+  const result = await pool.query(
+    `
+      SELECT id, name, email, phone
+      FROM users
+      WHERE id = $1
+    `,
+    [userId]
+  );
+
+  return result.rows[0] || null;
 };
 
 export const updateOrderStatus = async (orderId: number, status: string) => {

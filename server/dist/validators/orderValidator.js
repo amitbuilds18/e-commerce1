@@ -12,6 +12,9 @@ export function validatePlaceOrderBody(body) {
     if (body.product_id == null) {
         return "product_id is required.";
     }
+    if (!body.phone || typeof body.phone !== "string" || !body.phone.trim()) {
+        return "phone is required.";
+    }
     const quantity = Number(body.quantity);
     if (!Number.isInteger(quantity) || quantity <= 0) {
         return "quantity must be a positive integer.";
