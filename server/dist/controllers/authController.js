@@ -34,14 +34,20 @@ export const register = async (req, res) => {
         if (error?.code === "23505") {
             return res.status(400).json({
                 success: false,
-                message: "User already exists",
+                message: "User already exists with this email address",
             });
         }
+        const isDbError = error?.code === "ECONNREFUSED" ||
+            error?.code === "ENOTFOUND" ||
+            error?.code === "42P01" || // undefined_table
+            error?.message?.includes("connect") ||
+            error?.message?.includes("relation");
         res.status(500).json({
             success: false,
-            message: process.env.NODE_ENV === "production"
-                ? "Registration failed. Check the server database configuration."
-                : error?.message || "Server Error",
+            message: isDbError
+                ? `Database Error: ${error.message}. Please verify DATABASE_URL in Vercel environment variables.`
+                : error?.message || "Registration failed. Server Error.",
+            detail: error?.message,
         });
     }
 };
@@ -77,11 +83,17 @@ export const login = async (req, res) => {
     }
     catch (error) {
         console.error("Login Error:", error);
+        const isDbError = error?.code === "ECONNREFUSED" ||
+            error?.code === "ENOTFOUND" ||
+            error?.code === "42P01" ||
+            error?.message?.includes("connect") ||
+            error?.message?.includes("relation");
         res.status(500).json({
             success: false,
-            message: process.env.NODE_ENV === "production"
-                ? "Login failed. Check the server database configuration."
-                : error?.message || "Server Error",
+            message: isDbError
+                ? `Database Error: ${error.message}. Please verify DATABASE_URL in Vercel environment variables.`
+                : error?.message || "Login failed. Server Error.",
+            detail: error?.message,
         });
     }
 };

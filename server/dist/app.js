@@ -62,16 +62,22 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 // Health Check Probe Endpoint
-app.get("/api/health", async (req, res) => {
+const handleHealthCheck = async (req, res) => {
     try {
         const start = Date.now();
-        await pool.query("SELECT 1");
+        const result = await pool.query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public'");
         const dbLatency = Date.now() - start;
+        const tablesCount = Number(result.rows[0]?.count || 0);
         res.json({
             status: "ok",
             uptime: process.uptime(),
             database: "connected",
             dbLatencyMs: dbLatency,
+            publicTablesFound: tablesCount,
+            dbConfigured: Boolean(process.env.DATABASE_URL ||
+                process.env.POSTGRES_URL ||
+                process.env.DB_HOST ||
+                process.env.PGHOST),
             timestamp: new Date().toISOString(),
         });
     }
@@ -80,9 +86,12 @@ app.get("/api/health", async (req, res) => {
             status: "error",
             database: "disconnected",
             error: err.message,
+            hint: "Configure DATABASE_URL with SSL enabled in your Vercel/Render project settings.",
         });
     }
-});
+};
+app.get("/api/health", handleHealthCheck);
+app.get("/health", handleHealthCheck);
 app.get("/", (req, res) => {
     res.json({
         success: true,
