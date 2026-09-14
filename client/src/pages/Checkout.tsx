@@ -97,6 +97,13 @@ export default function Checkout() {
   // ======================
 
   const handlePlaceOrder = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      warning("Please log in to complete your checkout.");
+      navigate("/login", { state: { from: "/checkout" } });
+      return;
+    }
+
     if (
       !fullName ||
       !phone ||
@@ -140,8 +147,15 @@ export default function Checkout() {
         throw new Error("Checkout session could not be created.");
       }
     } catch (err: any) {
-      console.error(err);
-      toastError(err.response?.data?.message || "Order placement failed. Please try again.");
+      console.error("Order placement error:", err);
+      if (err.response?.status === 401) {
+        toastError("Your session has expired. Please log in again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login", { state: { from: "/checkout" } });
+      } else {
+        toastError(err.response?.data?.message || "Order placement failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

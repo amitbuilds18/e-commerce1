@@ -26,7 +26,7 @@ const router = express.Router();
 router.post(
   "/",
   protect,
-  authorize("user"),
+  authorize("user", "admin", "superAdmin"),
   validateBody(validatePlaceOrderBody),
   placeOrder
 );
@@ -38,7 +38,7 @@ router.post(
 router.get(
   "/my-orders",
   protect,
-  authorize("user"),
+  authorize("user", "admin", "superAdmin"),
   getMyOrders
 );
 

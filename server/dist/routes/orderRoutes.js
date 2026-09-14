@@ -8,11 +8,11 @@ const router = express.Router();
 // ===================================
 // USER PLACE ORDER
 // ===================================
-router.post("/", protect, authorize("user"), validateBody(validatePlaceOrderBody), placeOrder);
+router.post("/", protect, authorize("user", "admin", "superAdmin"), validateBody(validatePlaceOrderBody), placeOrder);
 // ===================================
 // USER MY ORDERS
 // ===================================
-router.get("/my-orders", protect, authorize("user"), getMyOrders);
+router.get("/my-orders", protect, authorize("user", "admin", "superAdmin"), getMyOrders);
 // ===================================
 // USER SINGLE ORDER DETAILS
 // ===================================
