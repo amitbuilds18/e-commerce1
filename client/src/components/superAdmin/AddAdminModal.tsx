@@ -52,6 +52,7 @@ export default function AddAdminModal({
           <input
             type="text"
             placeholder="Name"
+            autoComplete="name"
             className="border p-3 rounded-lg w-full mb-4"
             value={name}
             onChange={(e) =>
@@ -62,6 +63,7 @@ export default function AddAdminModal({
           <input
             type="email"
             placeholder="Email"
+            autoComplete="email"
             className="border p-3 rounded-lg w-full mb-4"
             value={email}
             onChange={(e) =>
@@ -72,6 +74,7 @@ export default function AddAdminModal({
           <input
             type="password"
             placeholder="Password"
+            autoComplete="new-password"
             className="border p-3 rounded-lg w-full mb-6"
             value={password}
             onChange={(e) =>

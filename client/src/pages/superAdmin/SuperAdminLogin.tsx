@@ -103,6 +103,7 @@ export default function SuperAdminLogin() {
                 <input
                   type="email"
                   required
+                  autoComplete="email"
                   placeholder="superadmin@stylehub.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -120,6 +121,7 @@ export default function SuperAdminLogin() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
+                  autoComplete="current-password"
                   placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

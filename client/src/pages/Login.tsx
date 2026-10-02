@@ -61,6 +61,7 @@ export default function Login() {
             type="email"
             placeholder="you@example.com"
             required
+            autoComplete="email"
             className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none transition"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -73,6 +74,7 @@ export default function Login() {
             type="password"
             placeholder="••••••••"
             required
+            autoComplete="current-password"
             className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none transition"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

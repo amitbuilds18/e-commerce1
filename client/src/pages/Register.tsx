@@ -62,6 +62,7 @@ export default function Register() {
             type="text"
             placeholder="John Doe"
             required
+            autoComplete="name"
             className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none transition"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -74,6 +75,7 @@ export default function Register() {
             type="email"
             placeholder="you@example.com"
             required
+            autoComplete="email"
             className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none transition"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -87,6 +89,7 @@ export default function Register() {
             placeholder="Minimum 6 characters"
             required
             minLength={6}
+            autoComplete="new-password"
             className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none transition"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -99,6 +102,7 @@ export default function Register() {
             type="password"
             placeholder="Repeat password"
             required
+            autoComplete="new-password"
             className="w-full border p-3 rounded-xl focus:ring-2 focus:ring-orange-400 outline-none transition"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
