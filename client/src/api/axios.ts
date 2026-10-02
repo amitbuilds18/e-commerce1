@@ -12,8 +12,8 @@ const getBaseUrl = () => {
     return "http://localhost:5000/api";
   }
 
-  // Production default
-  return "/api";
+  // Production default fallback to live Render backend
+  return "https://e-commerce18.onrender.com/api";
 };
 
 const API = axios.create({
