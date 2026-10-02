@@ -34,6 +34,18 @@ const calculateTotal = (cart) => {
     const gst = Math.round(subtotal * 0.18);
     return subtotal + shipping + gst;
 };
+const getClientBaseUrl = (req) => {
+    const origin = req.get("origin") || req.get("referer");
+    if (origin) {
+        try {
+            const parsed = new URL(origin);
+            return `${parsed.protocol}//${parsed.host}`;
+        }
+        catch { }
+    }
+    const raw = process.env.CLIENT_URL || "http://localhost:5173";
+    return raw.replace(/\/api\/?$/, "").replace(/\/$/, "");
+};
 // ================================
 // CREATE CHECKOUT SESSION
 // ================================
@@ -56,6 +68,7 @@ export const createCheckoutSession = async (req, res) => {
         }
         const cart = await getServerCart(requestedItems);
         const total = calculateTotal(cart);
+        const clientUrl = getClientBaseUrl(req);
         const session = await getStripe().checkout.sessions.create({
             mode: "payment",
             payment_method_types: ["card"],
@@ -71,8 +84,8 @@ export const createCheckoutSession = async (req, res) => {
                     },
                 },
             ],
-            success_url: `${process.env.CLIENT_URL || "http://localhost:5173"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.CLIENT_URL || "http://localhost:5173"}/payment-cancel`,
+            success_url: `${clientUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${clientUrl}/payment-cancel`,
             client_reference_id: String(userId),
             metadata: {
                 cart: JSON.stringify(cart.map(({ id, quantity }) => ({ id, quantity }))),

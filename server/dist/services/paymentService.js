@@ -10,11 +10,7 @@ const getStripe = () => {
     return new Stripe(secretKey);
 };
 export const createCheckoutSession = async (payload) => {
-    if (!process.env.CLIENT_URL) {
-        const error = new Error("CLIENT_URL is not configured.");
-        error.statusCode = 500;
-        throw error;
-    }
+    const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/api\/?$/, "").replace(/\/$/, "");
     const session = await getStripe().checkout.sessions.create({
         mode: "payment",
         payment_method_types: ["card"],
@@ -30,8 +26,8 @@ export const createCheckoutSession = async (payload) => {
                 },
             },
         ],
-        success_url: `${process.env.CLIENT_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
+        success_url: `${clientUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${clientUrl}/payment-cancel`,
     });
     return session.url;
 };

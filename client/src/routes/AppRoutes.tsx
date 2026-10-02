@@ -82,7 +82,23 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path="/api/payment-success"
+        element={
+          <ProtectedRoute>
+            <PaymentSuccess />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/payment-cancel"
+        element={
+          <ProtectedRoute>
+            <PaymentCancel />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/api/payment-cancel"
         element={
           <ProtectedRoute>
             <PaymentCancel />
