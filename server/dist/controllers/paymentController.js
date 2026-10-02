@@ -164,9 +164,11 @@ export const confirmPayment = async (req, res) => {
         });
     }
     catch (err) {
-        return res.status(500).json({
+        console.error("Payment Confirmation Error:", err);
+        return res.status(err.statusCode || 500).json({
             success: false,
-            message: err.statusCode ? err.message : "Unable to confirm payment.",
+            message: err.message || "Unable to confirm payment.",
+            error: err.message,
         });
     }
 };

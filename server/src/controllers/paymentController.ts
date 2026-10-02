@@ -210,9 +210,11 @@ export const confirmPayment = async (req: AuthRequest, res: Response) => {
       message: "Payment successful.",
     });
   } catch (err: any) {
-    return res.status(500).json({
+    console.error("Payment Confirmation Error:", err);
+    return res.status(err.statusCode || 500).json({
       success: false,
-      message: err.statusCode ? err.message : "Unable to confirm payment.",
+      message: err.message || "Unable to confirm payment.",
+      error: err.message,
     });
   }
 };
