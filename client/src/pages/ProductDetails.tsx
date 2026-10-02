@@ -6,6 +6,8 @@ import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import { getProduct } from "../api/productApi";
 
+import { handleImageError } from "../utils/imageHelper";
+
 type Product = {
   id: number;
   name: string;
@@ -65,6 +67,7 @@ export default function ProductDetails() {
           <img
             src={product.image}
             alt={product.name}
+            onError={handleImageError}
             className="rounded-xl w-full max-h-[500px] object-cover"
           />
         </div>

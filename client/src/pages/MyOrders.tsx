@@ -5,6 +5,7 @@ import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import API from "../api/axios";
 import { useToast } from "../context/ToastContext";
+import { handleImageError } from "../utils/imageHelper";
 
 type Order = {
   id: number;
@@ -137,6 +138,7 @@ export default function MyOrders() {
                     <img
                       src={order.image}
                       alt={order.product_name || order.name || "Product"}
+                      onError={handleImageError}
                       className="w-24 h-24 rounded-xl object-cover border bg-gray-50 shrink-0"
                     />
 

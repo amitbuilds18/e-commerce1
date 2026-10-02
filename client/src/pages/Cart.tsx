@@ -5,6 +5,8 @@ import Footer from "../components/layout/Footer";
 import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 
+import { handleImageError } from "../utils/imageHelper";
+
 export default function Cart() {
   const { cart, removeFromCart, addToCart } = useCart();
   const navigate = useNavigate();
@@ -87,6 +89,7 @@ export default function Cart() {
                     <img
                       src={item.image}
                       alt={item.name}
+                      onError={handleImageError}
                       className="w-24 h-24 rounded-xl object-cover border bg-gray-50"
                     />
 

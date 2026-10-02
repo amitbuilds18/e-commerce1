@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FaEdit, FaTrash, FaPlus, FaSearch, FaTimes, FaSave } from "react-icons/fa";
 import { getProducts, deleteProduct, updateProduct } from "../../api/productApi";
 import { useToast } from "../../context/ToastContext";
+import { handleImageError } from "../../utils/imageHelper";
 
 type Product = {
   id: number;
@@ -177,6 +178,7 @@ export default function AdminProducts() {
                         <img
                           src={product.image}
                           alt={product.name}
+                          onError={handleImageError}
                           className="w-14 h-14 object-cover rounded-xl border bg-gray-50 shrink-0"
                         />
                         <div>
@@ -347,6 +349,7 @@ export default function AdminProducts() {
                   <img
                     src={editingProduct.image}
                     alt="Preview"
+                    onError={handleImageError}
                     className="w-16 h-16 object-cover rounded-lg border bg-white"
                   />
                   <div className="text-xs text-gray-500">Image Preview</div>

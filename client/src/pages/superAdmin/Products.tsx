@@ -6,6 +6,7 @@ import {
   updateProduct,
 } from "../../api/productApi";
 import { useToast } from "../../context/ToastContext";
+import { handleImageError } from "../../utils/imageHelper";
 import {
   FaBoxOpen,
   FaPlus,
@@ -305,10 +306,7 @@ export default function Products() {
                         <img
                           src={product.image}
                           alt={product.name}
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src =
-                              "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&q=80";
-                          }}
+                          onError={handleImageError}
                           className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0 bg-slate-100 shadow-xs"
                         />
                         <div>

@@ -1,4 +1,5 @@
 import { FaTrash, FaShoppingCart, FaStar } from "react-icons/fa";
+import { handleImageError } from "../../utils/imageHelper";
 
 type Props = {
   product: any;
@@ -11,6 +12,7 @@ export default function WishlistItem({ product }: Props) {
       <img
         src={product.image}
         alt={product.name}
+        onError={handleImageError}
         className="w-36 h-36 object-cover rounded-lg"
       />
 

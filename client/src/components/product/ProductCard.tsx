@@ -4,6 +4,8 @@ import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useToast } from "../../context/ToastContext";
 
+import { handleImageError } from "../../utils/imageHelper";
+
 type ProductProps = {
   id: number;
   name: string;
@@ -88,6 +90,7 @@ export default function ProductCard({
         <img
           src={image}
           alt={name}
+          onError={handleImageError}
           className="w-full h-72 object-cover hover:scale-105 transition duration-500"
         />
 

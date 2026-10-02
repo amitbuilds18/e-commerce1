@@ -5,6 +5,7 @@ import Footer from "../components/layout/Footer";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
+import { handleImageError } from "../utils/imageHelper";
 
 export default function Wishlist() {
   const { wishlist, removeFromWishlist } = useWishlist();
@@ -82,6 +83,7 @@ export default function Wishlist() {
                     <img
                       src={item.image}
                       alt={item.name}
+                      onError={handleImageError}
                       className="w-full h-64 object-cover group-hover:scale-105 transition duration-500"
                     />
                     <button

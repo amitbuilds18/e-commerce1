@@ -11,6 +11,7 @@ import { createCheckoutSession } from "../api/paymentApi";
 import API from "../api/axios";
 
 import { useToast } from "../context/ToastContext";
+import { handleImageError } from "../utils/imageHelper";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -322,6 +323,7 @@ export default function Checkout() {
                       <img
                         src={item.image}
                         alt={item.name}
+                        onError={handleImageError}
                         className="w-14 h-14 rounded-lg object-cover border"
                       />
                       <div className="flex-1">

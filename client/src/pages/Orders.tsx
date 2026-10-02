@@ -4,6 +4,7 @@ import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 
 import { getMyOrders } from "../api/orderApi";
+import { handleImageError } from "../utils/imageHelper";
 
 export default function Orders() {
 
@@ -67,6 +68,7 @@ export default function Orders() {
                   <img
                     src={order.image}
                     alt={order.name}
+                    onError={handleImageError}
                     className="w-24 h-24 rounded object-cover"
                   />
 

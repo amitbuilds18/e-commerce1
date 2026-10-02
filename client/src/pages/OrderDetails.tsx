@@ -16,6 +16,7 @@ import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { getOrderDetails } from "../api/orderApi";
 import { useToast } from "../context/ToastContext";
+import { handleImageError } from "../utils/imageHelper";
 
 type Order = {
   id: number;
@@ -247,6 +248,7 @@ export default function OrderDetails() {
               <img
                 src={order.image}
                 alt={order.name}
+                onError={handleImageError}
                 className="w-20 h-20 rounded-lg object-cover border"
               />
               <div className="flex-1">
